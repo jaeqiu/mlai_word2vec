@@ -12,11 +12,15 @@ Using the uv package manager [by Astral](https://docs.astral.sh/uv/getting-start
 2. ```uv run main.py``` to run the project with the created virtual environment.
    
 # Basic concept of Word2Vec
-The goal of Word2Vec is to learn high-dimensional vector embeddings of words, such that the the orientation encodes the meaning. To illustrate, a classic example is: 
+Word2Vec learns vector representations of words, by training a neural network to predict context words from center words (Skip-gram). 
+By assuming that words which have a similar meaning show up in similar contexts, the learned vectors encode meaning.
+This allows some interpretations about relationships between words: 
 
-```V("Queen") = V("King") - V("Man") + V("Woman")```
+```cos("Good" , "Great") > cos("Cloud", "Apple")```
+```V("Queen") ≈ V("King") - V("Man") + V("Woman")```
 
 Where V(word) represents the vector embedding of word.
+And cos(wordA, wordB) represents the cosine similarity between V(wordA) and V(wordB).
 
 ## Neural network
 The skip-gram word2vec's model can be seen as a shallow neural network with the following data flow.
