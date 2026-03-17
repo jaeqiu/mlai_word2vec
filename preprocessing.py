@@ -11,13 +11,8 @@ BORING_WORDS = {
     "thing",
     "after",
     "made",
-    # , "pedals"
     "got",
-    # , "guitar"
     "still",
-    # , "sounds"
-    # , "product"
-    # , "tuner"
     "over",
     "way",
     "want",
@@ -25,58 +20,38 @@ BORING_WORDS = {
     "now",
     "been",
     "am",
-    # , "playing"
     "buy",
-    # , "work"
-    # , "string"
-    # , "mic"
-    # , "picks"
-    # , "guitars"
     "play",
     "even",
     "by",
     "stand",
     "need",
-    # , "strap"
     "bought",
     "because",
     "using",
     "too",
-    # , "easy"
-    # , "tone"
-    # , "time"
     "does",
     "any",
-    # , "better"
     "im",
-    # , "nice"
     "which",
     "there",
-    # , "used"
     "also",
-    # , "quality"
     "only",
-    # , "works"
     "ive",
     "much",
     "had",
-    # , "amp"
-    # , "little"
     "do",
     "about",
     "dont",
     "what",
     "some",
     "other",
-    # , "price"
-    # , "really"
     "me",
     "no",
     "would",
     "has",
     "than",
     "from",
-    # , "pedal"
     "get",
     "when",
     "up",
@@ -90,16 +65,10 @@ BORING_WORDS = {
     "at",
     "all",
     "can",
-    # , "strings"
-    # , "sound"
     "just",
     "use",
-    # , "good"
-    # , "very"
-    # , "like"
     "was",
     "be",
-    # , "great"
     "or",
     "if",
     "these",
@@ -165,15 +134,11 @@ def corpus_properties(sentence_generator):
 
     idx2word: dict[int:str] = {idx: word for word, idx in word2idx.items()}
 
-    # for word in sorted(idx2word.values(), key = lambda x: len(x), reverse=True):
-    #     print(word)
-
     unigram = np.array(list(idx2occurences.values())) ** (3 / 4)
     unigram /= np.sum(unigram)
 
-    print()
     print(
-        f"The vocabulary consists of {len(word2idx)} unique words for word2vec to learn the embedding of"
+        f"\nThe vocabulary consists of {len(word2idx)} unique words for word2vec to learn the embedding of"
     )
     print(f"The most occurring words are:")
     for i, (k, v) in enumerate(
@@ -188,10 +153,10 @@ def save_positive_pairs(
     sentence_generator,
     word2idx,
     context_size,
-    save_file="saves/positive_training_pairs.txt",
+    save_file="saves/temp/positive_training_pairs.txt",
 ):
     with open(save_file, "w") as f:
-        print(f"Cleared {save_file}.")
+        print(f"\nCleared {save_file}.")
         n = 0
         flat_samples = []
         for sentence in sentence_generator:
@@ -206,7 +171,7 @@ def save_positive_pairs(
                         continue
 
                     if j == i:
-                        # let's not dilute the effect of signals with self pairs
+                        # Let's not dilute the effect of signals with self pairs
                         continue
 
                     positive = sentence[j]
@@ -219,7 +184,7 @@ def save_positive_pairs(
         print(f"Wrote {n} training pairs to {save_file}.")
 
 
-def load_positive_pairs(save_file="positive_training_pairs.txt"):
+def load_positive_pairs(save_file="saves/temp/positive_training_pairs.txt"):
     with open(save_file, "r") as f:
         for line in f:
             target_idx, positive_idx = (int(x) for x in line.split())

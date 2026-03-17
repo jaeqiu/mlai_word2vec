@@ -20,8 +20,7 @@ def analyse(trained_model_state):
 
         # Descending similarity
         pairs.sort(key=lambda x: x[2], reverse=True)
-        print()
-        print(f"Top {k} most similar word pairs")
-        for a, b, s in pairs[:k:2]:
+        print(f"\nTop {k} most similar word pairs")
+        for a, b, s in pairs[:k*2:2]:
             print(f"    {a, b, s}")
     top_k_similar(word2vec, idx2word, k=12)

@@ -18,7 +18,7 @@ The goal of Word2Vec is to learn high-dimensional vector embeddings of words, su
 
 Where V(word) represents the vector embedding of word.
 
-# Neural network
+## Neural network
 The skip-gram word2vec's model can be seen as a shallow neural network with the following data flow.
 - one-hot inputs
 - linear combination with word2vec matrix as weights
@@ -31,10 +31,13 @@ This differs from the code implementation because negative sampling is faster.
 2. Replacing the expensive softmax with  -->
 
 # Features
-- Constant space complexity w.r.t. dataset size
+- Persisting the trained models in storage
+  - By default, training will write the trained embeddings to storage and run statistics on them.
+  - This allows reusing trained embeddings when experimenting with applications of embeddings (like statistics/analysis)
+- Persisting samples in storage
   - Lazy reading the dataset from storage
   - Lazy writing train samples to storage
-  - Lazy reading train samples from storage during training
+  - Lazy reading train samples from storage during training (constant space complexity w.r.t. dataset size)
   - My hardware could have allocated this relatively small dataset entirely, but if the dataset were larger this ad hoc approach would scale very well.
 - Negative sampling
   - We can approximate the gradient of the expensive softmax by computing the gradient of a batch of 1 positive + k negative (target, context, label) tuples.
