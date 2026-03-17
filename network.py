@@ -56,8 +56,8 @@ class NeuralNetwork:
         batch = []
         batch.append((target, positive, 1))
         for _ in range(neg_per_pos):
-            negative = positive
-            while negative == positive:
+            negative = None
+            while negative is None or negative == target or negative == positive:
                 negative = np.random.choice(
                     a=list(self.idx2word.keys()),
                     size=None,
@@ -71,10 +71,11 @@ class NeuralNetwork:
         self.apply_gradient(learning_rate)
         return batch_loss
 
-    def train_epochs(self, center_sample_pairs, neg_per_pos, n_epochs, learning_rate):
+    def train_epochs(self, center_sample_pairs, neg_per_pos, n_epochs, learning_rate, patience = 10):
         print(f"\nStart training")
 
         epoch_losses = []
+        best_epoch_loss = np.inf
         for i in range(n_epochs):
             sample_losses = []
             # for center_sample_pair in center_sample_pairs:
@@ -83,10 +84,19 @@ class NeuralNetwork:
                 sample_losses.append(
                     self.train(center_sample_pair, neg_per_pos, learning_rate)
                 )
-            epoch_losses.append(np.mean(sample_losses))
+            mean_batchloss = np.mean(sample_losses)
+            epoch_losses.append(mean_batchloss)
             print(
                 f"Finished epoch {i}, model scored a mean batch-loss of{epoch_losses[-1]}"
             )
+            if (mean_batchloss < best_epoch_loss):
+                best_epoch_loss = np.mean(sample_losses)
+                count = patience
+            else:
+                count -= 1
+            if (count <= 0):
+                print(f"Early stopping since loss hasn't beat {best_epoch_loss} in {patience} epochs")
+                break
         self.model_wise_losses.extend(epoch_losses)
 
         print(f"Finished training")
