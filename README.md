@@ -68,5 +68,5 @@ Hyperparameters can be adjusted in `main.py`
 - `n_epochs`: amount of times to train on the same reviews.
 - `learning_rate`: the magnitude of the step in gradient descent's loss landscape
 
-## Dataset and License
+## Dataset
 - [Amazon Product Reviews (Musical Instruments)](https://nijianmo.github.io/amazon/index.html)
