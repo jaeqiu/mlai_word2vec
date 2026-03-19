@@ -1,111 +1,5 @@
 import numpy as np
 
-# The heuristic I used for this was based on frequency (stop-words that barely occur aren't as problematic as e.g. "the").
-# I put the 120 most frequent words from the dataset into this set, and manually removed meaningful words (like "guitar").
-BORING_WORDS = {
-    "the",
-    "a",
-    "i",
-    "and",
-    "to",
-    "it",
-    "is",
-    "thing",
-    "after",
-    "made",
-    "got",
-    "still",
-    "over",
-    "way",
-    "want",
-    "into",
-    "now",
-    "been",
-    "am",
-    "buy",
-    "play",
-    "even",
-    "by",
-    "stand",
-    "need",
-    "bought",
-    "because",
-    "using",
-    "too",
-    "does",
-    "any",
-    "im",
-    "which",
-    "there",
-    "also",
-    "only",
-    "ive",
-    "much",
-    "had",
-    "do",
-    "about",
-    "dont",
-    "what",
-    "some",
-    "other",
-    "me",
-    "no",
-    "would",
-    "has",
-    "than",
-    "from",
-    "get",
-    "when",
-    "up",
-    "them",
-    "will",
-    "out",
-    "an",
-    "your",
-    "well",
-    "more",
-    "at",
-    "all",
-    "can",
-    "just",
-    "use",
-    "was",
-    "be",
-    "or",
-    "if",
-    "these",
-    "one",
-    "they",
-    "so",
-    "its",
-    "as",
-    "are",
-    "not",
-    "have",
-    "but",
-    "in",
-    "you",
-    "on",
-    "with",
-    "that",
-    "my",
-    "this",
-    "for",
-    "of",
-}
-def meaningful(gen):
-    """Filter out stop-words from tokenized sentences."""
-    for sentence in gen:
-        l = list(
-            filter(
-                lambda word: word not in BORING_WORDS,
-                sentence,
-            )
-        )
-        if l:
-            yield (l)
-
-
 def clean(sentence_generator):
     """Lowercase, keep alphabetic characters, and tokenize sentences."""
     for sentence in sentence_generator:
@@ -117,37 +11,48 @@ def clean(sentence_generator):
                 tokenised_sentence += " "
         yield (tokenised_sentence.split())
 
+def subsample(sentence_generator, word2idx, idx2freq, t = 1e-3):
+    for sentence in sentence_generator:
+        result = []
+        for token in sentence:
+            unigram = np.array(list(idx2freq.values()), dtype=float)
+            unigram /= np.sum(unigram)
+
+            # Skip word with discard probability. Frequent words get discarded more often
+            discard_probability = 1.0 - np.sqrt(t/unigram[word2idx[token]])
+            if (np.random.default_rng().uniform() <= discard_probability):
+                continue
+            result.append(token)
+        yield result
 
 def corpus_properties(sentence_generator):
     """Build vocabulary and unigram distribution for negative sampling."""
 
     word2idx: dict[str:int] = {}
-    idx2occurences: dict[str:int] = {}
+    idx2freq: dict[str:int] = {}
 
     for sentence in sentence_generator:
         for center_word in sentence:
             if center_word not in word2idx:
                 idx = len(word2idx)
-                idx2occurences[idx] = 1
+                idx2freq[idx] = 1
                 word2idx[center_word] = idx
             else:
-                idx2occurences[word2idx[center_word]] += 1
+                idx2freq[word2idx[center_word]] += 1
 
     idx2word: dict[int:str] = {idx: word for word, idx in word2idx.items()}
 
-    unigram = np.array(list(idx2occurences.values())) ** (3 / 4)
-    unigram /= np.sum(unigram)
 
     print(
         f"\nThe vocabulary consists of {len(word2idx)} unique words for word2vec to learn the embedding of"
     )
     print(f"The most occurring words are:")
     for i, (k, v) in enumerate(
-        sorted(idx2occurences.items(), key=lambda t: t[1], reverse=True)
+        sorted(idx2freq.items(), key=lambda t: t[1], reverse=True)
     ):
         if i < 5:
             print(f"    {idx2word[k]} with {v} occurences")
-    return word2idx, idx2word, unigram
+    return word2idx, idx2word, idx2freq
 
 
 def save_positive_pairs(
@@ -163,9 +68,6 @@ def save_positive_pairs(
         flat_samples = []
         for sentence in sentence_generator:
             for i, target in enumerate(sentence):
-                if target in BORING_WORDS:
-                    continue
-
                 target_idx = word2idx[target]
                 for j in range(i - context_size, i + context_size + 1):
                     if j < 0 or j >= len(sentence):
@@ -177,8 +79,6 @@ def save_positive_pairs(
                         continue
 
                     positive = sentence[j]
-                    if positive in BORING_WORDS:
-                        continue
                     positive_idx = word2idx[positive]
                     flat_samples.append((target_idx, positive_idx))
                     n += 1

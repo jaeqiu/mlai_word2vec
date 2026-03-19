@@ -2,11 +2,13 @@ import numpy as np
 
 
 class NeuralNetwork:
-    def __init__(self, word2idx, idx2word, unigram_distribution, vec_size):
+    def __init__(self, word2idx, idx2word, idx2freq, vec_size):
         """Initialize model parameters and buffers based on the corpus properties and the vec size of the to be learned embeddings."""
         self.word2idx: dict[str:int] = word2idx
         self.idx2word: dict[int:str] = idx2word
-        self.unigram_distribution: np.ndarray = unigram_distribution
+        smooth_unigram = np.array(list(idx2freq.values()), dtype=float) ** (3 / 4)
+        smooth_unigram /= np.sum(smooth_unigram)
+        self.unigram_distribution: np.ndarray = smooth_unigram 
 
         vocab_size = len(self.unigram_distribution)
         self.word2vec = np.random.default_rng().normal(size=(vocab_size, vec_size))
@@ -40,8 +42,8 @@ class NeuralNetwork:
         # gradient of loss w.r.t. preactivation vectors(pairwise dots)
         upstreams = np.where(grounds == 1, predictions - 1, predictions - 0)
 
-        self.word2vec_gradients[targets] += upstreams[:, None] * con_vecs
-        self.vec2context_gradients[contexts] += upstreams[:, None] * tar_vecs
+        np.add.at(self.word2vec_gradients, targets, upstreams[:, None] * con_vecs)
+        np.add.at(self.vec2context_gradients, contexts, upstreams[:, None] * tar_vecs)
 
         return losses
 

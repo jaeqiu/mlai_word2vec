@@ -48,17 +48,13 @@ This differs from the code implementation because negative sampling is faster.
   - Negatives are drawn from a unigram distribution of the non-target words' frequencies (slightly smoothened with **(3/4))
   - Adding the label to the tuple allowed me to implement the forward pass to be agnostic of whether the context word is positive or negative. 
   - This means that many batches can be appended to one another to perform batch processing of n positive samples + k*n negative samples as a future feature.
-- Semantically redundant and dominating words like "the" are removed to reduce computation overhead of learning more interesting words. 
-  - I put the dataset's 120 most occurring stop-words in a constant set to filter out and manually removed interesting words like "guitar". ![alt text](image-3.png)
-  - They are filtered during both vocabulary building and sampling. 
-  - Removing boring words at tokenisation time alone, will result in skip gram samples being sourced outside the context size.
-  - To illustrate, removing "the" at tokenization time would convert "I love the harmonious violin" into "I love harmonious violin", which will then lead sampling to falsely associate "love" with "harmonious"
+- Subsample words at tokenisation time alone to reduce training on frequent words
 
 ## Project Structure
 For the sake of seperation of concerns/code cleanliness, the logic is split into several noteworthy files:
 - `main.py`: Entry-point of the project in which you can train Word2vec.
 - `dataset_loading.py`: Read dataset (lazily for memory scalabilty)
-- `preprocessing.py`: Prepare dataset for training (tokenisation, cleaning, removing meaningless words) Text cleaning, vocabulary building, unigram distribution, and positive pair generation
+- `preprocessing.py`: Prepare dataset for training (tokenisation, cleaning, subsample words)
 - `network.py`: Training logic (forward pass, gradient descent)
 - `analysis.py`: Analysis methods for verifying the learned embeddings.
 - `Musical_Instruments_5.json`: 5-core Amazon reviews sample (input data)

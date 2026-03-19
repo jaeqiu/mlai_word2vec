@@ -1,0 +1,6 @@
+king is male
+queen is female
+man is male
+woman is female
+paris capital france
+berlin capital germany
