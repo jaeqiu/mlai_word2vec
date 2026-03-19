@@ -3,6 +3,7 @@ import numpy as np
 
 class NeuralNetwork:
     def __init__(self, word2idx, idx2word, unigram_distribution, vec_size):
+        """Initialize model parameters and buffers based on the corpus properties and the vec size of the to be learned embeddings."""
         self.word2idx: dict[str:int] = word2idx
         self.idx2word: dict[int:str] = idx2word
         self.unigram_distribution: np.ndarray = unigram_distribution
@@ -18,6 +19,7 @@ class NeuralNetwork:
         )
 
     def forward(self, batch):
+        """Batch forward pass (predictions, losses, gradients)"""
         targets, contexts, grounds = batch.T
 
         tar_vecs = self.word2vec[targets]
@@ -44,6 +46,7 @@ class NeuralNetwork:
         return losses
 
     def apply_gradient(self, learning_rate):
+        """Hyperparameter update: apply the accumulated gradients at a learning rate sized step."""
         self.word2vec -= self.word2vec_gradients * learning_rate
         self.vec2context -= self.vec2context_gradients * learning_rate
 
@@ -51,6 +54,8 @@ class NeuralNetwork:
         self.vec2context_gradients = np.zeros(self.vec2context.shape)
 
     def train(self, tuple, neg_per_pos, learning_rate):
+        """Negative sampling: Take a single positive pair and create n negative pairs. Train on the batch of 1+n pairs.
+        """
         target, positive = tuple
 
         batch = []
@@ -72,12 +77,16 @@ class NeuralNetwork:
         return batch_loss
 
     def train_epochs(self, center_sample_pairs, neg_per_pos, n_epochs, learning_rate, patience = 10):
+        """Train for multiple epochs over sampled pairs."""
         print(f"\nStart training")
 
         epoch_losses = []
         best_epoch_loss = np.inf
-        for i in range(n_epochs):
+        count = patience
+        for epoch in range(n_epochs):
+
             sample_losses = []
+
             # for center_sample_pair in center_sample_pairs:
             for k, center_sample_pair in enumerate(center_sample_pairs()):
                 # print(k)
@@ -86,17 +95,20 @@ class NeuralNetwork:
                 )
             mean_batchloss = np.mean(sample_losses)
             epoch_losses.append(mean_batchloss)
+
             print(
-                f"Finished epoch {i}, model scored a mean batch-loss of{epoch_losses[-1]}"
+                f"Finished epoch {epoch}, model scored a mean batch-loss of{epoch_losses[-1]}"
             )
+
             if (mean_batchloss < best_epoch_loss):
                 best_epoch_loss = np.mean(sample_losses)
                 count = patience
             else:
                 count -= 1
-            if (count <= 0):
-                print(f"Early stopping since loss hasn't beat {best_epoch_loss} in {patience} epochs")
-                break
+                if (count <= 0):
+                    print(f"Early stopping since loss hasn't beat {best_epoch_loss} in {patience} epochs")
+                    break
+
         self.model_wise_losses.extend(epoch_losses)
 
         print(f"Finished training")

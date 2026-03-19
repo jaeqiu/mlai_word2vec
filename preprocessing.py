@@ -1,5 +1,7 @@
 import numpy as np
 
+# The heuristic I used for this was based on frequency (stop-words that barely occur aren't as problematic as e.g. "the").
+# I put the 120 most frequent words from the dataset into this set, and manually removed meaningful words (like "guitar").
 BORING_WORDS = {
     "the",
     "a",
@@ -91,9 +93,8 @@ BORING_WORDS = {
     "for",
     "of",
 }
-
-
 def meaningful(gen):
+    """Filter out stop-words from tokenized sentences."""
     for sentence in gen:
         l = list(
             filter(
@@ -106,8 +107,7 @@ def meaningful(gen):
 
 
 def clean(sentence_generator):
-    # keep lowercased alphas and spaces
-    # tokenize to list of word strings
+    """Lowercase, keep alphabetic characters, and tokenize sentences."""
     for sentence in sentence_generator:
         tokenised_sentence = ""
         for char in sentence:
@@ -119,6 +119,7 @@ def clean(sentence_generator):
 
 
 def corpus_properties(sentence_generator):
+    """Build vocabulary and unigram distribution for negative sampling."""
 
     word2idx: dict[str:int] = {}
     idx2occurences: dict[str:int] = {}
@@ -155,6 +156,7 @@ def save_positive_pairs(
     context_size,
     save_file="saves/temp/positive_training_pairs.txt",
 ):
+    """Write positive skip-gram pairs to storage."""
     with open(save_file, "w") as f:
         print(f"\nCleared {save_file}.")
         n = 0
@@ -185,6 +187,7 @@ def save_positive_pairs(
 
 
 def load_positive_pairs(save_file="saves/temp/positive_training_pairs.txt"):
+    """Lazy load and parse positive pairs"""
     with open(save_file, "r") as f:
         for line in f:
             target_idx, positive_idx = (int(x) for x in line.split())

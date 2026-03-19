@@ -1,10 +1,12 @@
 import numpy as np
+
 def analyse(trained_model_state):
     word2idx = trained_model_state["word2idx"].item()  # objects, not np arrays
     idx2word = trained_model_state["idx2word"].item()  # objects, not np arrays
     word2vec = trained_model_state["word2vec"]
 
     def top_k_similar(word2vec, idx2word, k):
+        """Print top k nearest word pairs from trained word2vec."""
         magnitudes = np.linalg.norm(word2vec, axis=1, keepdims=True)
         normalized_word2vec = word2vec / magnitudes
 
